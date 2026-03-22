@@ -1,0 +1,67 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(11, 15, 25, 0.6);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.modal-subtitle {
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
+}
+
+.login-form .w-full {
+    width: 100%;
+}
+
+.login-form .mt-4 {
+    margin-top: 1rem;
+}
+
+.modal-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.link-accent {
+    color: var(--accent-teal);
+    font-weight: 500;
+}
+
+.link-accent:hover {
+    text-decoration: underline;
+}

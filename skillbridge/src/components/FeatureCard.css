@@ -1,0 +1,34 @@
+.feature-card {
+    text-align: left;
+    display: block;
+}
+
+.icon-wrapper {
+    background-color: rgba(123, 97, 255, 0.1);
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+}
+
+.feature-icon {
+    color: var(--accent-purple);
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.feature-desc {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.feature-card:hover .feature-title {
+    color: var(--accent-teal);
+}
