@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Layout, Brain, Users, Package, Rocket, AlertCircle } from 'lucide-react';
 import { api } from '../services/api';
+import CustomSelect from '../components/CustomSelect';
 
 export default function Planner() {
     const [idea, setIdea] = useState('');
@@ -9,6 +10,14 @@ export default function Planner() {
     const [planData, setPlanData] = useState(null);
     const [activeTab, setActiveTab] = useState('roadmap');
     const [isGenerating, setIsGenerating] = useState(false);
+
+    const domainOptions = [
+        { value: 'ai', label: 'Artificial Intelligence' },
+        { value: 'cloud', label: 'Cloud Computing' },
+        { value: 'iot', label: 'Internet of Things' },
+        { value: 'web', label: 'Web Development' },
+        { value: 'core', label: 'Core Electronics' }
+    ];
 
     const handlePlan = async (e) => {
         e.preventDefault();
@@ -33,24 +42,24 @@ export default function Planner() {
     return (
         <div className="container page-layout animate-fade-in">
             <div className="page-header">
-                <h1 className="page-title">Project Planner</h1>
-                <p className="page-subtitle">Turn your ideas into intelligent execution plans.</p>
+                <h1 className="page-title">Project Architect</h1>
+                <p className="page-subtitle">Turn your vision into an intelligent execution plan with AI.</p>
             </div>
 
             <div className="grid-2">
-                <div className="card">
-                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Describe Your Idea</h3>
+                <div className="card glass">
+                    <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Brain size={20} color="var(--accent-teal)" />
+                        Describe Your Idea
+                    </h3>
                     <form onSubmit={handlePlan}>
-                        <div className="input-group">
-                            <label className="input-label">Project Domain</label>
-                            <select className="input-field" value={domain} onChange={(e) => setDomain(e.target.value)} required disabled={isGenerating}>
-                                <option value="">Select Domain...</option>
-                                <option value="ai">Artificial Intelligence</option>
-                                <option value="iot">Internet of Things</option>
-                                <option value="web">Web Development</option>
-                                <option value="core">Core Electronics</option>
-                            </select>
-                        </div>
+                        <CustomSelect 
+                            label="Project Domain"
+                            options={domainOptions}
+                            value={domain}
+                            onChange={(e) => setDomain(e.target.value)}
+                            placeholder="Select Project Domain..."
+                        />
                         <div className="input-group">
                             <label className="input-label">Project Description</label>
                             <textarea
@@ -75,24 +84,32 @@ export default function Planner() {
                             <Sparkles className="logo-icon" size={20} /> Your Structured AI Plan
                         </h3>
 
-                        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem', overflowX: 'auto' }}>
-                            {['roadmap', 'mentors', 'resources', 'resume'].map(tab => (
+                        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                            {[
+                                { id: 'roadmap', icon: <Rocket size={16} />, label: 'Roadmap' },
+                                { id: 'mentors', icon: <Users size={16} />, label: 'Mentors' },
+                                { id: 'resources', icon: <Package size={16} />, label: 'Resources' },
+                                { id: 'resume', icon: <Layout size={16} />, label: 'Resume' }
+                            ].map(tab => (
                                 <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
                                     style={{
-                                        padding: '0.5rem 0',
-                                        background: 'none',
+                                        padding: '0.6rem 1rem',
+                                        background: activeTab === tab.id ? 'rgba(0, 245, 196, 0.1)' : 'none',
                                         border: 'none',
-                                        borderBottom: activeTab === tab ? '2px solid var(--accent-teal)' : '2px solid transparent',
-                                        color: activeTab === tab ? 'var(--text-color)' : 'var(--text-muted)',
-                                        fontWeight: activeTab === tab ? 600 : 400,
+                                        borderRadius: '8px',
+                                        color: activeTab === tab.id ? 'var(--accent-teal)' : 'var(--text-muted)',
+                                        fontWeight: activeTab === tab.id ? 600 : 500,
                                         cursor: 'pointer',
-                                        textTransform: 'capitalize',
-                                        whiteSpace: 'nowrap'
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        whiteSpace: 'nowrap',
+                                        transition: 'all 0.2s ease'
                                     }}
                                 >
-                                    {tab === 'resume' ? 'Resume Pitch' : tab}
+                                    {tab.icon} {tab.label}
                                 </button>
                             ))}
                         </div>
@@ -101,21 +118,31 @@ export default function Planner() {
                             <div className="animate-fade-in">
                                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
                                     {planData.tech_stack?.map((tech, i) => (
-                                        <span key={i} className="badge" style={{ backgroundColor: 'var(--accent-blue)', color: 'white' }}>{tech}</span>
+                                        <span key={i} className="badge">{tech}</span>
                                     ))}
                                 </div>
 
-                                <h4 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>Weekly Milestones</h4>
-                                {planData.weekly_tasks?.map((week, i) => (
-                                    <div key={i} style={{ padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '0.5rem', marginBottom: '0.75rem' }}>
-                                        <strong style={{ color: 'var(--accent-teal)' }}>Week {week.week}:</strong> {week.task}
-                                        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{week.details}</p>
-                                    </div>
-                                ))}
+                                <h4 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Rocket size={18} color="var(--accent-teal)" />
+                                    Execution Milestones
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    {planData.weekly_tasks?.map((week, i) => (
+                                        <div key={i} style={{ padding: '1.25rem', backgroundColor: 'rgba(255, 255, 255, 0.03)', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                                <strong style={{ color: 'var(--accent-teal)', fontSize: '0.9rem' }}>PHASE {week.week}</strong>
+                                            </div>
+                                            <h5 style={{ fontSize: '1.05rem', marginBottom: '0.5rem' }}>{week.task}</h5>
+                                            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>{week.details}</p>
+                                        </div>
+                                    ))}
+                                </div>
 
                                 {planData.risk_warnings && planData.risk_warnings.length > 0 && (
-                                    <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderLeft: '3px solid #ef4444', borderRadius: '0 0.5rem 0.5rem 0' }}>
-                                        <h4 style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Potential Risks & Warnings</h4>
+                                    <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderLeft: '3px solid #ef4444', borderRadius: '0 12px 12px 0' }}>
+                                        <h4 style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <AlertCircle size={16} /> Potential Risks & Warnings
+                                        </h4>
                                         <ul style={{ listStylePosition: 'inside', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
                                             {planData.risk_warnings.map((risk, i) => <li key={i}>{risk}</li>)}
                                         </ul>

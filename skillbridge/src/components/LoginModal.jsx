@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LoginModal.css';
+import { API_BASE_URL } from '../services/api';
 
 export default function LoginModal({ onClose }) {
     const [role, setRole] = useState('student');
@@ -14,7 +15,7 @@ export default function LoginModal({ onClose }) {
                 const formData = new FormData(e.target);
                 const name = formData.get('id_email'); // using the input name
                 // For prototype, we ask for just one ID field, we'll split or mock dept/year
-                const response = await fetch('http://127.0.0.1:5000/login', {
+                const response = await fetch(`${API_BASE_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: name, dept: 'CSE', year: '3' }),

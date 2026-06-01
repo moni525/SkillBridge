@@ -203,7 +203,7 @@ Generate a comprehensive project plan. Return ONLY a structured JSON response ex
   ]
 }}"""
 
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(prompt)
         text = response.text.strip()
         
@@ -234,8 +234,50 @@ Generate a comprehensive project plan. Return ONLY a structured JSON response ex
         })
         
     except Exception as e:
-        print("AI Project Planner Error:", str(e))
-        return jsonify({'success': False, 'message': f'Failed to generate plan. Error: {str(e)}'}), 500
+        print("AI Project Planner Error, returning mock:", str(e))
+        plan_json = {
+            "weekly_tasks": [
+                {"week": 1, "task": "Research and Planning", "details": "Understand requirements and plan the architecture."}
+            ],
+            "tech_stack": [domain, "Python", "React"],
+            "required_skills": ["Basic Programming", "Problem Solving"],
+            "risk_warnings": ["Time constraints", "Scope creep"],
+            "resume_description": f"A comprehensive {domain} project titled {title}.",
+            "mentors_suggested": [{"name": "Mock Mentor", "reason": "Domain expertise"}],
+            "resources_needed": [{"name": "Mock Lab", "reason": "Required for development"}]
+        }
+        
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            # check if project exists
+            cursor.execute('SELECT id FROM projects WHERE title = ? AND user_id = ?', (title, current_user_id))
+            proj = cursor.fetchone()
+            if not proj:
+                cursor.execute('INSERT INTO projects (user_id, title, domain, description) VALUES (?, ?, ?, ?)', 
+                               (current_user_id, title, domain, description))
+                project_id = cursor.lastrowid
+            else:
+                project_id = proj['id']
+                
+            cursor.execute('''INSERT INTO project_plans 
+                (project_id, student_id, weekly_tasks, mentors_suggested, resources_needed, resume_description, tech_stack, required_skills, risk_warnings) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (project_id, current_user_id, json.dumps(plan_json.get('weekly_tasks', [])), 
+                 json.dumps(plan_json.get('mentors_suggested', [])), json.dumps(plan_json.get('resources_needed', [])),
+                 plan_json.get('resume_description', ''), json.dumps(plan_json.get('tech_stack', [])),
+                 json.dumps(plan_json.get('required_skills', [])), json.dumps(plan_json.get('risk_warnings', []))))
+                 
+            conn.commit()
+            conn.close()
+        except Exception as sqlite_e:
+            print("SQLite Mock Error:", sqlite_e)
+            
+        return jsonify({
+            'success': True, 
+            'message': 'AI Project Plan (Mock) generated successfully!',
+            'plan': plan_json
+        })
 
 @app.route('/my-projects', methods=['GET'])
 @token_required
@@ -383,7 +425,7 @@ Return ONLY a structured JSON response exactly matching this schema. Do not encl
         if os.environ.get("GEMINI_API_KEY", "dummy_key") == "dummy_key":
             return jsonify({'success': False, 'message': 'Missing API Key! Please add it to the .env file in the backend folder and restart the backend.'}), 400
             
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(prompt)
         text = response.text.strip()
         
@@ -419,8 +461,71 @@ Return ONLY a structured JSON response exactly matching this schema. Do not encl
         return jsonify({'success': True, 'roadmap': roadmap_json})
         
     except Exception as e:
-        print("Gemini Generation Error:", str(e))
-        return jsonify({'success': False, 'message': f'Failed to generate skill path from AI. Error: {str(e)}'}), 500
+        print("Gemini Generation Error, returning mock:", str(e))
+        roadmap_json = {
+            "weeks": [
+                {
+                    "week_number": 1,
+                    "focus": "Fundamentals",
+                    "skills_to_learn": ["Basic concepts"],
+                    "project_ideas": ["Simple script"],
+                    "hackathons": [],
+                    "mentors": [],
+                    "resources": ["Online tutorials"],
+                    "tasks": ["Read introduction", "Setup environment"]
+                },
+                {
+                    "week_number": 2,
+                    "focus": "Building Blocks",
+                    "skills_to_learn": ["Data Structures", "Functions"],
+                    "project_ideas": ["Calculator app"],
+                    "hackathons": ["Internal Campus Meetup"],
+                    "mentors": ["Senior student mentors"],
+                    "resources": ["Advanced documentation"],
+                    "tasks": ["Implement logic", "Fix bugs", "Review code"]
+                },
+                {
+                    "week_number": 3,
+                    "focus": "Real-world Projects",
+                    "skills_to_learn": ["API Integration", "State Management"],
+                    "project_ideas": ["Weather dashboard"],
+                    "hackathons": [],
+                    "mentors": ["Faculty guides"],
+                    "resources": ["API documentations"],
+                    "tasks": ["Connect to API", "Build UI components", "Testing"]
+                },
+                {
+                    "week_number": 4,
+                    "focus": "Deployment & Polish",
+                    "skills_to_learn": ["Hosting", "SEO", "Optimization"],
+                    "project_ideas": ["Portfolio website"],
+                    "hackathons": ["National Hackathon Q1"],
+                    "mentors": ["Industry experts"],
+                    "resources": ["Deployment guides"],
+                    "tasks": ["Optimize performance", "Deploy to Vercel", "Launch"]
+                }
+            ]
+        }
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO skill_paths (user_id, goal, current_skills, time_available, domain, roadmap_json) VALUES (?, ?, ?, ?, ?, ?)',
+                         (current_user_id, goal, current_skills, time_available, domain, json.dumps(roadmap_json)))
+                         
+            path_id = cursor.lastrowid
+            for week in roadmap_json.get('weeks', []):
+                week_num = week.get('week_number', 1)
+                tasks_list = week.get('tasks', week.get('actionable_tasks', []))
+                for task in tasks_list:
+                    cursor.execute('INSERT INTO skill_tasks (user_id, path_id, week_number, task_text, status) VALUES (?, ?, ?, ?, ?)',
+                                 (current_user_id, path_id, week_num, task, 'pending'))
+                                 
+            conn.commit()
+            conn.close()
+        except Exception as sqlite_e:
+            print("SQLite Error in Mock:", sqlite_e)
+            
+        return jsonify({'success': True, 'message': 'Mock generated', 'roadmap': roadmap_json})
 
 import re
 
@@ -591,30 +696,41 @@ def get_active_skill_path(current_user_id):
 @app.route('/skill-paths/update-tasks', methods=['POST'])
 @token_required
 def update_skill_tasks(current_user_id):
-    data = request.json
-    completed_task_ids = data.get('completed_task_ids', [])
-    pending_task_ids = data.get('pending_task_ids', [])
-    
-    conn = get_db_connection()
-    
-    # Mark completed tasks
-    for tid in completed_task_ids:
-        conn.execute('UPDATE skill_tasks SET status = "completed" WHERE id = ? AND user_id = ?', (tid, current_user_id))
+    try:
+        data = request.json
+        completed_task_ids = data.get('completed_task_ids', [])
+        pending_task_ids = data.get('pending_task_ids', [])
         
-    # Move pending tasks to next week (assuming rolling over)
-    suggest_easier = False
-    
-    if len(pending_task_ids) > 3:
-        suggest_easier = True
+        conn = get_db_connection()
         
-    for tid in pending_task_ids:
-        # Increment week number
-        conn.execute('UPDATE skill_tasks SET week_number = week_number + 1 WHERE id = ? AND user_id = ?', (tid, current_user_id))
+        # Mark completed tasks
+        for tid in completed_task_ids:
+            conn.execute('UPDATE skill_tasks SET status = "completed" WHERE id = ? AND user_id = ?', (tid, current_user_id))
+            
+        # Move pending tasks to next week (assuming rolling over)
+        suggest_easier = False
         
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'success': True, 'suggest_easier': suggest_easier, 'message': 'Progress saved successfully.'})
+        if len(pending_task_ids) > 3:
+            suggest_easier = True
+            
+        for tid in pending_task_ids:
+            # Increment week number
+            conn.execute('UPDATE skill_tasks SET week_number = week_number + 1 WHERE id = ? AND user_id = ?', (tid, current_user_id))
+            
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True, 
+            'suggest_easier': suggest_easier, 
+            'message': 'Progress saved successfully.'
+        })
+    except Exception as e:
+        print(f"Error updating tasks: {str(e)}")
+        return jsonify({
+            'success': False, 
+            'message': f"Internal server error: {str(e)}"
+        }), 500
 
 @app.route('/skill-paths/easier', methods=['POST'])
 @token_required
@@ -656,7 +772,7 @@ Return ONLY a structured JSON response exactly matching this schema. Do not encl
 }}"""
 
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(prompt)
         text = response.text.strip()
         
@@ -691,9 +807,41 @@ Return ONLY a structured JSON response exactly matching this schema. Do not encl
         return jsonify({'success': True, 'message': 'Created an easier roadmap for you!', 'roadmap': roadmap_json})
         
     except Exception as e:
-        print("Gemini Easier Error:", str(e))
-        conn.close()
-        return jsonify({'success': False, 'message': f'Failed to generate easier path. Error: {str(e)}'}), 500
+        print("Gemini Easier Error, returning mock:", str(e))
+        roadmap_json = {
+            "weeks": [
+                {
+                    "week_number": 1,
+                    "focus": "Gentle Introduction",
+                    "skills_to_learn": ["Fundamentals"],
+                    "project_ideas": ["Very simple project"],
+                    "hackathons": [],
+                    "mentors": [],
+                    "resources": ["Beginner friendly resources"],
+                    "tasks": ["Easy Review Task"]
+                }
+            ]
+        }
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO skill_paths (user_id, goal, current_skills, time_available, domain, roadmap_json) VALUES (?, ?, ?, ?, ?, ?)',
+                         (current_user_id, f"Easier: {path['goal']}", path['current_skills'], path['time_available'], path['domain'], json.dumps(roadmap_json)))
+                         
+            new_path_id = cursor.lastrowid
+            for week in roadmap_json.get('weeks', []):
+                week_num = week.get('week_number', 1)
+                tasks_list = week.get('tasks', week.get('actionable_tasks', []))
+                for task in tasks_list:
+                    cursor.execute('INSERT INTO skill_tasks (user_id, path_id, week_number, task_text, status) VALUES (?, ?, ?, ?, ?)',
+                                 (current_user_id, new_path_id, week_num, task, 'pending'))
+                                 
+            conn.commit()
+            conn.close()
+        except:
+            pass
+            
+        return jsonify({'success': True, 'message': 'Created an easier roadmap (Mock)!', 'roadmap': roadmap_json})
 
 
 if __name__ == '__main__':

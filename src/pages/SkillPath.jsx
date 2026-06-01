@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Compass, Sparkles, Code, Briefcase, Calendar, ChevronRight, CheckCircle2, Circle, AlertCircle } from 'lucide-react';
+import { Compass, Sparkles, Code, Briefcase, Calendar, ChevronRight, CheckCircle2, Circle, AlertCircle, BarChart3, Target, Clock, Globe } from 'lucide-react';
 import { api } from '../services/api';
+import CustomSelect from '../components/CustomSelect';
 
 export default function SkillPath() {
     const [formData, setFormData] = useState({
@@ -18,6 +19,23 @@ export default function SkillPath() {
     const [updatingProgress, setUpdatingProgress] = useState(false);
     const [suggestEasier, setSuggestEasier] = useState(false);
     const [generatingEasier, setGeneratingEasier] = useState(false);
+
+    const timeOptions = [
+        { value: '5 hours/week', label: '5 hours/week' },
+        { value: '10 hours/week', label: '10 hours/week' },
+        { value: '20 hours/week', label: '20 hours/week' },
+        { value: 'Full Time', label: 'Full Time' }
+    ];
+
+    const domainOptions = [
+        { value: 'Frontend', label: 'Frontend Dev' },
+        { value: 'Backend', label: 'Backend Dev' },
+        { value: 'Full Stack', label: 'Full Stack' },
+        { value: 'Artificial Intelligence', label: 'AI / ML' },
+        { value: 'Cloud Computing', label: 'Cloud Computing' },
+        { value: 'Data Science', label: 'Data Science' },
+        { value: 'Cybersecurity', label: 'Cybersecurity' }
+    ];
 
     const fetchActivePath = async () => {
         try {
@@ -108,11 +126,11 @@ export default function SkillPath() {
                 }
                 await fetchActivePath(); // Refresh the data to show updated weeks
             } else {
-                alert(data.message);
+                alert(data.message || "Failed to save progress.");
             }
         } catch (err) {
             console.error("Update error:", err);
-            alert("Failed to save progress");
+            alert("Failed to save progress. Please check your connection or server status.");
         } finally {
             setUpdatingProgress(false);
         }
@@ -164,9 +182,9 @@ export default function SkillPath() {
 
             <div className="grid-2">
                 {/* Form Section */}
-                <div className="card">
+                <div className="card glass">
                     <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Sparkles size={20} color="var(--accent-purple)" />
+                        <Target size={20} color="var(--accent-purple)" />
                         Create New Path
                     </h3>
                     <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -197,26 +215,18 @@ export default function SkillPath() {
                         </div>
 
                         <div className="grid-2" style={{ gap: '1rem' }}>
-                            <div className="input-group">
-                                <label className="input-label">Time Available</label>
-                                <select name="time_available" className="input-field" value={formData.time_available} onChange={handleChange}>
-                                    <option value="5 hours/week">5 hours/week</option>
-                                    <option value="10 hours/week">10 hours/week</option>
-                                    <option value="20 hours/week">20 hours/week</option>
-                                    <option value="Full Time">Full Time</option>
-                                </select>
-                            </div>
-                            <div className="input-group">
-                                <label className="input-label">Preferred Domain</label>
-                                <select name="domain" className="input-field" value={formData.domain} onChange={handleChange}>
-                                    <option value="Frontend">Frontend Dev</option>
-                                    <option value="Backend">Backend Dev</option>
-                                    <option value="Full Stack">Full Stack</option>
-                                    <option value="Artificial Intelligence">AI / ML</option>
-                                    <option value="Data Science">Data Science</option>
-                                    <option value="Cybersecurity">Cybersecurity</option>
-                                </select>
-                            </div>
+                            <CustomSelect 
+                                label="Time Available"
+                                options={timeOptions}
+                                value={formData.time_available}
+                                onChange={(e) => setFormData({ ...formData, time_available: e.target.value })}
+                            />
+                            <CustomSelect 
+                                label="Preferred Domain"
+                                options={domainOptions}
+                                value={formData.domain}
+                                onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                            />
                         </div>
 
                         {error && <p style={{ color: '#ff4b4b', fontSize: '0.875rem' }}>{error}</p>}
@@ -247,14 +257,17 @@ export default function SkillPath() {
                     )}
 
                     {!loading && !generatingEasier && activePath && (
-                        <div className="roadmap-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '700px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-                            <div className="card" style={{ borderBottom: '2px solid var(--accent-teal)', paddingBottom: '1rem' }}>
-                                <div className="flex-between" style={{ marginBottom: '0.5rem' }}>
-                                    <h3 style={{ fontSize: '1.25rem' }}>Active Tracker: {activePath.goal}</h3>
-                                    <span style={{ fontWeight: 600, color: 'var(--accent-teal)' }}>{progressPercent}% Complete</span>
+                        <div className="roadmap-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxHeight: '700px', overflowY: 'auto', paddingRight: '0.75rem' }}>
+                            <div className="card glass" style={{ borderBottom: '2px solid var(--accent-teal)', padding: '1.5rem' }}>
+                                <div className="flex-between" style={{ marginBottom: '0.75rem' }}>
+                                    <h3 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                        <BarChart3 size={22} color="var(--accent-teal)" />
+                                        Active Tracker
+                                    </h3>
+                                    <span style={{ fontWeight: 700, color: 'var(--accent-teal)', fontSize: '1.1rem' }}>{progressPercent}%</span>
                                 </div>
-                                <div style={{ width: '100%', backgroundColor: 'var(--bg-secondary)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                                    <div style={{ width: `${progressPercent}%`, backgroundColor: 'var(--accent-teal)', height: '100%', transition: 'width 0.3s ease' }}></div>
+                                <div style={{ width: '100%', backgroundColor: 'rgba(255, 255, 255, 0.05)', height: '10px', borderRadius: '5px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                                    <div style={{ width: `${progressPercent}%`, background: 'linear-gradient(90deg, var(--accent-teal), #00d4aa)', height: '100%', transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)', boxShadow: '0 0 10px var(--accent-teal-glow)' }}></div>
                                 </div>
 
                                 {suggestEasier && (
@@ -277,9 +290,12 @@ export default function SkillPath() {
                                 const weekDetails = activePath.roadmap?.weeks?.find(w => w.week_number === parseInt(weekNum)) || {};
 
                                 return (
-                                    <div key={weekNum} className="card" style={{ borderLeft: '4px solid var(--accent-purple)' }}>
-                                        <div className="flex-between" style={{ marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                                            <h4 style={{ fontSize: '1.1rem', color: 'var(--accent-teal)' }}>Week {weekNum}: {weekDetails.focus || 'Tasks'}</h4>
+                                    <div key={weekNum} className="card glass" style={{ borderLeft: '4px solid var(--accent-purple)', padding: '1.5rem' }}>
+                                        <div className="flex-between" style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                                            <h4 style={{ fontSize: '1.1rem', color: 'var(--accent-teal)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                                <Calendar size={18} />
+                                                Week {weekNum}: {weekDetails.focus || 'Development Phase'}
+                                            </h4>
                                         </div>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function DashboardCard({ title, link, linkText, children }) {
     return (
-        <div className="card dashboard-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div className="card dashboard-card glass" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.15rem' }}>{title}</h3>
                 {link && (

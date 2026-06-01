@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Sparkles } from 'lucide-react';
 import './Chatbot.css';
+import { API_BASE_URL } from '../services/api';
 
 export default function Chatbot() {
     const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +30,7 @@ export default function Chatbot() {
         setIsLoading(true);
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/chat', {
+            const response = await fetch(`${API_BASE_URL}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userText })
